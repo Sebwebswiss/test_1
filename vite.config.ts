@@ -3,14 +3,13 @@ import { fileURLToPath } from "url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { viteSingleFile } from "vite-plugin-singlefile";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), viteSingleFile()],
-  base: "./", // Ovo kaže aplikaciji da gleda relativno u odnosu na trenutnu mapu
+  plugins: [react(), tailwindcss()], // Obrisali smo singleFile odavde
+  base: "/test_1/", // Zadržavamo ime repozitorija jer nam treba za GitHub!
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
