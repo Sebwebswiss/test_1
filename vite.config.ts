@@ -8,10 +8,9 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), viteSingleFile()],
-  base: "/test_1/", // Dodano ime tvog repozitorija
+  base: "./", // Ovo kaže aplikaciji da gleda relativno u odnosu na trenutnu mapu
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
