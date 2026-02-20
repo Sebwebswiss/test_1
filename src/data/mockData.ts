@@ -94,11 +94,11 @@ export const alerts = [
 ];
 
 export const tariffs = {
-  current: 'Dnevna tarifa (VT)',
-  pricePerKwh: 0.15,
-  currency: 'KM',
-  nextChange: '22:00',
-  nightPrice: 0.08,
+  current: 'Viša tarifa (VT)',
+  pricePerKwh: 0.21,
+  currency: '€',
+  nextChange: '21:00',
+  nightPrice: 0.11,
 };
 
 export const deviceConsumptionPie = [

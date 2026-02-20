@@ -1,6 +1,11 @@
-import { Zap, BarChart3, DollarSign, TrendingDown } from 'lucide-react';
+import { Zap, BarChart3, Euro, TrendingDown } from 'lucide-react';
 import { useHA } from '@/context/HAContext';
 import { StatCard } from '@/components/StatCard';
+
+// Hrvatske tarife
+const VT_PRICE = 0.21; // EUR/kWh
+const NT_PRICE = 0.11; // EUR/kWh
+const AVG_PRICE = 0.16; // Prosječna cijena
 
 export function HAStatCards() {
   const { isDemo, energyEntities } = useHA();
@@ -11,32 +16,32 @@ export function HAStatCards() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Danas"
-          value="38.3 kWh"
-          subtitle="Procjena za cijeli dan: 42 kWh"
+          value="20.6 kWh"
+          subtitle="VT: 12.4 kWh • NT: 8.2 kWh"
           icon={<Zap size={22} />}
-          trend={{ value: 12, label: 'od jučer' }}
+          trend={{ value: 8, label: 'od jučer' }}
           colorClass="from-indigo-500 to-indigo-600"
         />
         <StatCard
-          title="Ova sedmica"
-          value="316.6 kWh"
-          subtitle="Prosjek: 45.2 kWh/dan"
+          title="Ovaj tjedan"
+          value="156.2 kWh"
+          subtitle="Prosjek: 22.3 kWh/dan"
           icon={<BarChart3 size={22} />}
-          trend={{ value: -5, label: 'od prošle' }}
+          trend={{ value: -5, label: 'od prošlog' }}
           colorClass="from-purple-500 to-purple-600"
         />
         <StatCard
           title="Mjesečni trošak"
-          value="162.00 KM"
-          subtitle="Budžet: 240.00 KM"
-          icon={<DollarSign size={22} />}
-          trend={{ value: -8, label: 'od prošlog mj.' }}
+          value="78.50 €"
+          subtitle="VT: 59.98 € • NT: 19.62 €"
+          icon={<Euro size={22} />}
+          trend={{ value: -12, label: 'od prošlog mj.' }}
           colorClass="from-emerald-500 to-emerald-600"
         />
         <StatCard
-          title="Ušteda"
-          value="28.50 KM"
-          subtitle="Ostvarena zahvaljujući AI savjetima"
+          title="Ušteda (NT)"
+          value="18.40 €"
+          subtitle="Korištenjem noćne tarife"
           icon={<TrendingDown size={22} />}
           colorClass="from-amber-500 to-orange-500"
         />
@@ -46,7 +51,8 @@ export function HAStatCards() {
 
   // Connected: compute from HA data
   let totalPowerW = 0;
-  let totalEnergyKwh = 0;
+  let dailyEnergyKwh = 0;
+  let monthlyEnergyKwh = 0;
 
   for (const s of energyEntities.power) {
     const val = parseFloat(s.state);
@@ -56,16 +62,44 @@ export function HAStatCards() {
     }
   }
 
+  // Pronađi dnevne i mjesečne senzore
   for (const s of energyEntities.energy) {
     const val = parseFloat(s.state);
-    if (!isNaN(val)) {
-      const unit = String(s.attributes.unit_of_measurement || '').toLowerCase();
-      totalEnergyKwh += unit === 'wh' ? val / 1000 : val;
+    if (isNaN(val)) continue;
+    
+    const entityId = s.entity_id.toLowerCase();
+    const friendlyName = String(s.attributes.friendly_name || '').toLowerCase();
+    const unit = String(s.attributes.unit_of_measurement || '').toLowerCase();
+    
+    const kwh = unit === 'wh' ? val / 1000 : val;
+    
+    if (entityId.includes('daily') || entityId.includes('dnevn') || entityId.includes('today') ||
+        friendlyName.includes('daily') || friendlyName.includes('dnevn') || friendlyName.includes('danas')) {
+      dailyEnergyKwh += kwh;
+    }
+    if (entityId.includes('monthly') || entityId.includes('mjesec') || entityId.includes('month') ||
+        friendlyName.includes('monthly') || friendlyName.includes('mjesečn') || friendlyName.includes('mjesec')) {
+      monthlyEnergyKwh += kwh;
     }
   }
 
-  const pricePerKwh = 0.15;
-  const estimatedCost = totalEnergyKwh * pricePerKwh;
+  // Ako nema specifičnih senzora, koristi ukupnu energiju
+  if (dailyEnergyKwh === 0) {
+    for (const s of energyEntities.energy) {
+      const val = parseFloat(s.state);
+      if (!isNaN(val)) {
+        const unit = String(s.attributes.unit_of_measurement || '').toLowerCase();
+        dailyEnergyKwh += unit === 'wh' ? val / 1000 : val;
+      }
+    }
+  }
+
+  // Procjena troška (60% VT, 40% NT)
+  const estimatedDailyCost = dailyEnergyKwh * AVG_PRICE;
+  const estimatedMonthlyCost = monthlyEnergyKwh > 0 ? monthlyEnergyKwh * AVG_PRICE : estimatedDailyCost * 30;
+  
+  // Ušteda korištenjem NT
+  const ntSaving = (monthlyEnergyKwh > 0 ? monthlyEnergyKwh : dailyEnergyKwh * 30) * 0.4 * (VT_PRICE - NT_PRICE);
 
   const activeDevices = [
     ...energyEntities.switches,
@@ -85,23 +119,23 @@ export function HAStatCards() {
         colorClass="from-indigo-500 to-indigo-600"
       />
       <StatCard
-        title="Ukupna energija"
-        value={`${totalEnergyKwh.toFixed(1)} kWh`}
-        subtitle={`${energyEntities.energy.length} senzor(a) energije`}
+        title="Danas"
+        value={`${dailyEnergyKwh.toFixed(1)} kWh`}
+        subtitle={`Trošak: ${estimatedDailyCost.toFixed(2)} €`}
         icon={<BarChart3 size={22} />}
         colorClass="from-purple-500 to-purple-600"
       />
       <StatCard
-        title="Procj. trošak"
-        value={`${estimatedCost.toFixed(2)} KM`}
-        subtitle={`Cijena: ${pricePerKwh} KM/kWh`}
-        icon={<DollarSign size={22} />}
+        title="Mjesečni trošak"
+        value={`${estimatedMonthlyCost.toFixed(2)} €`}
+        subtitle={`VT: ${VT_PRICE} €/kWh • NT: ${NT_PRICE} €/kWh`}
+        icon={<Euro size={22} />}
         colorClass="from-emerald-500 to-emerald-600"
       />
       <StatCard
         title="Aktivni uređaji"
         value={`${activeDevices} / ${totalDevices}`}
-        subtitle="Prekidači, svjetla, klime"
+        subtitle={ntSaving > 0 ? `NT ušteda: ${ntSaving.toFixed(2)} €` : 'Prekidači, svjetla, klime'}
         icon={<TrendingDown size={22} />}
         colorClass="from-amber-500 to-orange-500"
       />

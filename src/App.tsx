@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
-  Zap, Home, BarChart3, Settings, Bell, Menu, X,
-  Gauge, Wifi, WifiOff, Globe, Github
+  Zap, Home, BarChart3, Settings, Menu, X,
+  Gauge, Wifi, WifiOff
 } from 'lucide-react';
 import { HAProvider, useHA } from '@/context/HAContext';
 import { LivePower } from '@/components/LivePower';
@@ -12,22 +12,16 @@ import { HADeviceList } from '@/components/HADeviceList';
 import { HAPowerSensors } from '@/components/HAPowerSensors';
 import { ConsumptionPie } from '@/components/ConsumptionPie';
 import { RoomBreakdown } from '@/components/RoomBreakdown';
-import { AlertsFeed } from '@/components/AlertsFeed';
 import { TariffInfo } from '@/components/TariffInfo';
 import { SettingsPage } from '@/components/SettingsPage';
-import { HostingPage } from '@/components/HostingPage';
-import { GitHubDeployPage } from '@/components/GitHubDeployPage';
 import { cn } from '@/utils/cn';
 
-type NavPage = 'dashboard' | 'stats' | 'devices' | 'alerts' | 'hosting' | 'github' | 'settings';
+type NavPage = 'dashboard' | 'stats' | 'devices' | 'settings';
 
 const navItems: { icon: React.ReactNode; label: string; page: NavPage }[] = [
   { icon: <Home size={20} />, label: 'Početna', page: 'dashboard' },
   { icon: <BarChart3 size={20} />, label: 'Statistika', page: 'stats' },
   { icon: <Gauge size={20} />, label: 'Uređaji', page: 'devices' },
-  { icon: <Bell size={20} />, label: 'Obavještenja', page: 'alerts' },
-  { icon: <Globe size={20} />, label: 'Hosting', page: 'hosting' },
-  { icon: <Github size={20} />, label: 'GitHub Deploy', page: 'github' },
   { icon: <Settings size={20} />, label: 'Postavke', page: 'settings' },
 ];
 
@@ -129,12 +123,6 @@ function AppContent() {
             <div className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 p-4 border border-green-100">
               <p className="text-xs font-semibold text-green-800">✓ Povezano</p>
               <p className="text-[11px] text-green-600 mt-1">Live podaci se automatski ažuriraju preko WebSocket-a.</p>
-              <button
-                onClick={() => handleNavClick('github')}
-                className="mt-2 w-full rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800 transition-colors flex items-center justify-center gap-1.5"
-              >
-                <Github size={14} /> Deploy na GitHub
-              </button>
             </div>
           )}
         </div>
@@ -157,9 +145,6 @@ function AppContent() {
                   {currentPage === 'dashboard' && 'Dashboard'}
                   {currentPage === 'stats' && 'Statistika'}
                   {currentPage === 'devices' && 'Uređaji'}
-                  {currentPage === 'alerts' && 'Obavještenja'}
-                  {currentPage === 'hosting' && 'Besplatno hostovanje'}
-                  {currentPage === 'github' && 'GitHub Deploy'}
                   {currentPage === 'settings' && 'Postavke'}
                 </h2>
                 <p className="text-xs text-gray-400 capitalize">{formattedDate}</p>
@@ -222,9 +207,6 @@ function AppContent() {
           {currentPage === 'dashboard' && <DashboardPage />}
           {currentPage === 'stats' && <StatsPage />}
           {currentPage === 'devices' && <DevicesPage />}
-          {currentPage === 'alerts' && <AlertsPage />}
-          {currentPage === 'hosting' && <HostingPage />}
-          {currentPage === 'github' && <GitHubDeployPage />}
           {currentPage === 'settings' && <SettingsPage />}
 
           {/* Footer */}
@@ -267,7 +249,7 @@ function DashboardPage() {
           <RoomBreakdown />
         </div>
         <div className="lg:col-span-1">
-          <AlertsFeed />
+          <RoomBreakdown />
         </div>
       </div>
     </>
@@ -300,13 +282,7 @@ function DevicesPage() {
   );
 }
 
-function AlertsPage() {
-  return (
-    <div className="max-w-2xl">
-      <AlertsFeed />
-    </div>
-  );
-}
+/* AlertsPage removed */
 
 export function App() {
   return (
